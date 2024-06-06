@@ -26,12 +26,21 @@ const client = new MongoClient(uri, {
 
 async function run() {
     const CollectionFMenu = client.db("BistroBossDB").collection('OrderDB')
+    const CollectionFReview = client.db("BistroBossReviewDB").collection('ReviewDB')
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
+
     app.get('/menu', async(req, res) => {
         const menu = req.body
         const result = await CollectionFMenu.find(menu).toArray()
+        res.send(result)
+      })
+
+
+    app.get('/review', async(req, res) => {
+        const review = req.body
+        const result = await CollectionFReview.find(review).toArray()
         res.send(result)
       })
     // Send a ping to confirm a successful connection
