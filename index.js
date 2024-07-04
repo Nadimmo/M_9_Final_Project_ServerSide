@@ -99,6 +99,15 @@ async function run() {
       res.send(result);
     });
 
+    app.delete('/menu/:id', verifyToken, verifyAdmin, async(req,res)=>{
+      const id = req.params.id;
+      const filterId = { _id: new ObjectId(id)}
+      const result = await CollectionFMenu.deleteOne(filterId)
+      res.send(result)
+    })
+
+
+    // ............review related api ...............
     app.get("/review", async (req, res) => {
       const review = req.body;
       const result = await CollectionFReview.find(review).toArray();
@@ -164,7 +173,7 @@ async function run() {
       res.send(result)
     })
 
-// check admin 
+// ..............check admin........... 
     app.get('/user/admin/:email', verifyToken, async(req,res)=>{
        const email = req.params.email;
        if(email !== req.decoded.email){
