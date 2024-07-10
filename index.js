@@ -135,6 +135,12 @@ async function run() {
       res.send(result);
     });
 
+    app.post('/review', async(req,res)=>{
+      const review = req.body;
+      const result = await CollectionFReview.insertOne(review)
+      res.send(result)
+    })
+
     // ............cart related api..........
     app.get("/carts", async (req, res) => {
       const email = req.query.email;
