@@ -46,6 +46,9 @@ async function run() {
   const CollectionFContact = client
     .db("BistroBossReviewDB")
     .collection("ContactDB");
+  const CollectionFBookings = client
+    .db("BistroBossReviewDB")
+    .collection("BookingsDB");
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
@@ -196,6 +199,19 @@ async function run() {
       const result = await CollectionFContact.insertOne(contact);
       res.send(result);
     });
+
+    // ........booking related api...........
+    app.post('/bookings', verifyToken, async(req,res)=>{
+      const booking = req.body;
+      const result = await CollectionFBookings.insertOne(booking)
+      res.send(result)
+    })
+
+    app.get('/bookings', verifyToken, async(req,res)=>{
+      const booking = req.body
+      const result = await CollectionFBookings.find(booking).toArray()
+      res.send(result)
+    })
 
     // .............admin related api...........
     app.patch("/user/admin/:id", verifyToken, verifyAdmin, async (req, res) => {
