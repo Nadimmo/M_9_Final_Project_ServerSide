@@ -182,8 +182,9 @@ async function run() {
     });
 
     app.get("/user", verifyToken, verifyAdmin, async (req, res) => {
-      const user = await CollectionFUsers.find().toArray();
-      res.send(user);
+      const user = req.body
+      const result = await CollectionFUsers.find(user).toArray();
+      res.send(result);
     });
 
     app.delete("/user/:id", verifyToken, verifyAdmin, async (req, res) => {
@@ -201,7 +202,7 @@ async function run() {
     });
 
     // ........booking related api...........
-    app.post('/bookings', verifyToken, async(req,res)=>{
+    app.post('/bookings',  async(req,res)=>{
       const booking = req.body;
       const result = await CollectionFBookings.insertOne(booking)
       res.send(result)
