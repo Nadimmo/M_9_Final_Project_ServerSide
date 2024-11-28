@@ -43,6 +43,9 @@ async function run() {
   const CollectionFPayments = client
     .db("BistroBossReviewDB")
     .collection("PaymentsDB");
+  const CollectionFContact = client
+    .db("BistroBossReviewDB")
+    .collection("ContactDB");
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
@@ -135,11 +138,11 @@ async function run() {
       res.send(result);
     });
 
-    app.post('/review', async(req,res)=>{
+    app.post("/review", async (req, res) => {
       const review = req.body;
-      const result = await CollectionFReview.insertOne(review)
-      res.send(result)
-    })
+      const result = await CollectionFReview.insertOne(review);
+      res.send(result);
+    });
 
     // ............cart related api..........
     app.get("/carts", async (req, res) => {
@@ -187,6 +190,13 @@ async function run() {
       res.send(result);
     });
 
+    // ..............contact related api............
+    app.post("/contact", async (req, res) => {
+      const contact = req.body;
+      const result = await CollectionFContact.insertOne(contact);
+      res.send(result);
+    });
+
     // .............admin related api...........
     app.patch("/user/admin/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
@@ -221,7 +231,7 @@ async function run() {
     app.post("/create-payment-intent", async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
-      console.log("amount", amount);
+      // console.log("amount", amount);
       // Create a PaymentIntent with the order amount and currency
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
@@ -236,7 +246,7 @@ async function run() {
     app.post("/payments", async (req, res) => {
       const payment = req.body;
       const paymentResult = await CollectionFPayments.insertOne(payment);
-      console.log("payment info", paymentResult);
+      // console.log("payment info", paymentResult);
 
       // find id
       const query = {
@@ -249,15 +259,15 @@ async function run() {
       res.send({ paymentResult, result });
     });
 
-    app.get('/payments/:email', verifyToken, async(req,res)=>{
-      const query = {email: req.params.email}
-      if(req.params.email !== req.decoded.email){
-        res.status(403).send({message: "forbidden access"})
+    app.get("/payments/:email", verifyToken, async (req, res) => {
+      const query = { email: req.params.email };
+      if (req.params.email !== req.decoded.email) {
+        res.status(403).send({ message: "forbidden access" });
       }
 
-      const result = await CollectionFPayments.find(query).toArray()
-      res.send(result)
-    })
+      const result = await CollectionFPayments.find(query).toArray();
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
