@@ -214,6 +214,18 @@ async function run() {
       res.send(result)
     })
 
+    app.patch('/bookings/:id', async(req,res)=>{
+      const bookingId = req.params.id;
+      const filter = {_id: new ObjectId(bookingId)}
+      const updateDoc = {
+        $set:{
+          status: "Done"
+        }
+      }
+      const result = await CollectionFBookings.updateOne(filter, updateDoc)
+      res.send(result)
+    })
+
     // .............admin related api...........
     app.patch("/user/admin/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
