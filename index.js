@@ -302,12 +302,21 @@ async function run() {
 
 
     // stats or anilities
-    app.get('/admin-stats', async(req,res)=>{
+    app.get('/admin-stats', verifyToken,verifyAdmin, async(req,res)=>{
       const users = await CollectionFUsers.find().toArray()
       const order = await CollectionFMenu.find().toArray()
       const items = await CollectionFCarts.find().toArray()
       const result = [users,order,items]
       res.send(result)
+    })
+
+    // user all data related api
+    app.get('/user-stats', verifyToken, async(req,res)=>{
+      const order = await CollectionFMenu.find().toArray()
+      const contact = await CollectionFContact.find().toArray()
+      const result = [order,contact]
+      res.send(result)
+
     })
 
     // Send a ping to confirm a successful connection
