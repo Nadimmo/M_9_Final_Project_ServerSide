@@ -69,6 +69,8 @@ async function run() {
         return res.status(401).send({ message: "unauthorized access" });
       }
       const token = req.headers.authorization.split(" ")[1];
+      // console.log(token)
+      // console.log(req.headers)
       jwt.verify(token, process.env.ACCESS_TOK, (err, decoded) => {
         if (err) {
           return res.status(401).send({ message: "unauthorized access" });
@@ -297,6 +299,16 @@ async function run() {
       const result = await CollectionFPayments.find(query).toArray();
       res.send(result);
     });
+
+
+    // stats or anilities
+    app.get('/admin-stats', async(req,res)=>{
+      const users = await CollectionFUsers.find().toArray()
+      const order = await CollectionFMenu.find().toArray()
+      const items = await CollectionFCarts.find().toArray()
+      const result = [users,order,items]
+      res.send(result)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
