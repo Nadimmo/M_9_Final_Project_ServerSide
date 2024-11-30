@@ -302,7 +302,7 @@ async function run() {
 
 
     // stats or anilities
-    app.get('/admin-stats', verifyToken,verifyAdmin, async(req,res)=>{
+    app.get('/admin-stats', verifyToken, async(req,res)=>{
       const users = await CollectionFUsers.find().toArray()
       const order = await CollectionFMenu.find().toArray()
       const items = await CollectionFCarts.find().toArray()
@@ -314,7 +314,8 @@ async function run() {
     app.get('/user-stats', verifyToken, async(req,res)=>{
       const order = await CollectionFMenu.find().toArray()
       const contact = await CollectionFContact.find().toArray()
-      const result = [order,contact]
+      const review = await CollectionFReview.find().toArray()
+      const result = [order,contact,review]
       res.send(result)
 
     })
