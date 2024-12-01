@@ -30,12 +30,10 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
-  // menu == order
-  const CollectionFMenu = client.db("BistroBossDB").collection("OrderDB");
+  const CollectionFMenu = client.db("BistroBossReviewDB").collection("MenuDB");
   const CollectionFReview = client
     .db("BistroBossReviewDB")
     .collection("ReviewDB");
-    // carts == menu all data 
   const CollectionFCarts = client
     .db("BistroBossReviewDB")
     .collection("CartsDB");
@@ -303,12 +301,83 @@ async function run() {
     });
 
 
-    // stats or anilities
-    app.get('/admin-stats', verifyToken, async(req,res)=>{
-      const users = await CollectionFUsers.find().toArray()
-      const order = await CollectionFMenu.find().toArray()
-      const items = await CollectionFCarts.find().toArray()
-      const result = [users,order,items]
+    // stats or analytics
+    app.get('/admin-stats', verifyToken, verifyAdmin, async (req, res) => {
+      const users = await CollectionFUsers.estimatedDocumentCount();
+      const menuItems = await CollectionFMenu.estimatedDocumentCount();
+      const orders = await CollectionFCarts.estimatedDocumentCount();
+
+      // this is not the best way
+      // const payments = await paymentCollection.find().toArray();
+      // const revenue = payments.reduce((total, payment) => total + payment.price, 0);
+
+      const result = await CollectionFPayments.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalRevenue: {
+              $sum: '$price'
+            }
+          }
+        }
+      ]).toArray();
+
+      const revenue = result.length > 0 ? result[0].totalRevenue : 0;
+
+      res.send({
+        users,
+        menuItems,
+        orders,
+        revenue
+      })
+    })
+
+
+    // // stats or anilities
+    app.get('/order-stats',  async(req,res)=>{
+      const result = await CollectionFPayments.aggregate([
+        {
+          // Ensure `menuIds` is an array of ObjectId instances
+          $addFields: {
+            menuIds: {
+              $map: {
+                input: '$menuIds',
+                as: 'id',
+                in: { $convert: { input: '$$id', to: 'objectId', onError: null, onNull: null } }
+              }
+            }
+          }
+        },
+        {
+          $unwind: '$menuIds'
+        },
+        {
+          $lookup: {
+            from: 'MenuDB',
+            localField: 'menuIds',
+            foreignField: '_id',
+            as: 'menuItems'
+          }
+        },
+        {
+          $unwind: '$menuItems'
+        },
+        {
+          $group: {
+            _id: '$menuItems.category',
+            quantity:{ $sum: 1 },
+            revenue: { $sum: '$menuItems.price'} 
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            category: '$_id',
+            quantity: '$quantity',
+            revenue: '$revenue'
+          }
+        }
+      ]).toArray();
       res.send(result)
     })
 
