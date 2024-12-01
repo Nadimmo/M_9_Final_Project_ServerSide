@@ -30,10 +30,12 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
+  // menu == order
   const CollectionFMenu = client.db("BistroBossDB").collection("OrderDB");
   const CollectionFReview = client
     .db("BistroBossReviewDB")
     .collection("ReviewDB");
+    // carts == menu all data 
   const CollectionFCarts = client
     .db("BistroBossReviewDB")
     .collection("CartsDB");
@@ -312,10 +314,10 @@ async function run() {
 
     // user all data related api
     app.get('/user-stats', verifyToken, async(req,res)=>{
-      const order = await CollectionFMenu.find().toArray()
-      const contact = await CollectionFContact.find().toArray()
-      const review = await CollectionFReview.find().toArray()
-      const result = [order,contact,review]
+      const menu = await CollectionFMenu.estimatedDocumentCount()
+      const contact = await CollectionFContact.estimatedDocumentCount()
+      const review = await CollectionFReview.estimatedDocumentCount()
+      const result = [menu,contact,review]
       res.send(result)
 
     })
