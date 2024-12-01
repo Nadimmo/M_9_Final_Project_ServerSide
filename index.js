@@ -305,7 +305,7 @@ async function run() {
     app.get('/admin-stats', verifyToken, verifyAdmin, async (req, res) => {
       const users = await CollectionFUsers.estimatedDocumentCount();
       const menuItems = await CollectionFMenu.estimatedDocumentCount();
-      const orders = await CollectionFCarts.estimatedDocumentCount();
+      const orders = await CollectionFPayments.estimatedDocumentCount();
 
       // this is not the best way
       // const payments = await paymentCollection.find().toArray();
@@ -334,7 +334,7 @@ async function run() {
 
 
     // // stats or anilities
-    app.get('/order-stats',  async(req,res)=>{
+    app.get('/order-stats', verifyToken, verifyAdmin, async(req,res)=>{
       const result = await CollectionFPayments.aggregate([
         {
           // Ensure `menuIds` is an array of ObjectId instances
