@@ -13,7 +13,11 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://final-project-1235e.web.app",
+      "https://final-project-1235e.firebaseapp.com",
+    ],
   })
 );
 
@@ -184,7 +188,7 @@ async function run() {
     });
 
     app.get("/user", verifyToken, verifyAdmin, async (req, res) => {
-      const user = req.body
+      const user = req.body;
       const result = await CollectionFUsers.find(user).toArray();
       res.send(result);
     });
@@ -204,29 +208,29 @@ async function run() {
     });
 
     // ........booking related api...........
-    app.post('/bookings',  async(req,res)=>{
+    app.post("/bookings", async (req, res) => {
       const booking = req.body;
-      const result = await CollectionFBookings.insertOne(booking)
-      res.send(result)
-    })
+      const result = await CollectionFBookings.insertOne(booking);
+      res.send(result);
+    });
 
-    app.get('/bookings', verifyToken, async(req,res)=>{
-      const booking = req.body
-      const result = await CollectionFBookings.find(booking).toArray()
-      res.send(result)
-    })
+    app.get("/bookings", verifyToken, async (req, res) => {
+      const booking = req.body;
+      const result = await CollectionFBookings.find(booking).toArray();
+      res.send(result);
+    });
 
-    app.patch('/bookings/:id', async(req,res)=>{
+    app.patch("/bookings/:id", async (req, res) => {
       const bookingId = req.params.id;
-      const filter = {_id: new ObjectId(bookingId)}
+      const filter = { _id: new ObjectId(bookingId) };
       const updateDoc = {
-        $set:{
-          status: "Done"
-        }
-      }
-      const result = await CollectionFBookings.updateOne(filter, updateDoc)
-      res.send(result)
-    })
+        $set: {
+          status: "Done",
+        },
+      };
+      const result = await CollectionFBookings.updateOne(filter, updateDoc);
+      res.send(result);
+    });
 
     // .............admin related api...........
     app.patch("/user/admin/:id", verifyToken, verifyAdmin, async (req, res) => {
@@ -300,9 +304,8 @@ async function run() {
       res.send(result);
     });
 
-
     // stats or analytics
-    app.get('/admin-stats', verifyToken, verifyAdmin, async (req, res) => {
+    app.get("/admin-stats", verifyToken, verifyAdmin, async (req, res) => {
       const users = await CollectionFUsers.estimatedDocumentCount();
       const menuItems = await CollectionFMenu.estimatedDocumentCount();
       const orders = await CollectionFPayments.estimatedDocumentCount();
@@ -316,10 +319,10 @@ async function run() {
           $group: {
             _id: null,
             totalRevenue: {
-              $sum: '$price'
-            }
-          }
-        }
+              $sum: "$price",
+            },
+          },
+        },
       ]).toArray();
 
       const revenue = result.length > 0 ? result[0].totalRevenue : 0;
@@ -328,68 +331,73 @@ async function run() {
         users,
         menuItems,
         orders,
-        revenue
-      })
-    })
-
+        revenue,
+      });
+    });
 
     // // stats or anilities
-    app.get('/order-stats', verifyToken, verifyAdmin, async(req,res)=>{
+    app.get("/order-stats", verifyToken, verifyAdmin, async (req, res) => {
       const result = await CollectionFPayments.aggregate([
         {
           // Ensure `menuIds` is an array of ObjectId instances
           $addFields: {
             menuIds: {
               $map: {
-                input: '$menuIds',
-                as: 'id',
-                in: { $convert: { input: '$$id', to: 'objectId', onError: null, onNull: null } }
-              }
-            }
-          }
+                input: "$menuIds",
+                as: "id",
+                in: {
+                  $convert: {
+                    input: "$$id",
+                    to: "objectId",
+                    onError: null,
+                    onNull: null,
+                  },
+                },
+              },
+            },
+          },
         },
         {
-          $unwind: '$menuIds'
+          $unwind: "$menuIds",
         },
         {
           $lookup: {
-            from: 'MenuDB',
-            localField: 'menuIds',
-            foreignField: '_id',
-            as: 'menuItems'
-          }
+            from: "MenuDB",
+            localField: "menuIds",
+            foreignField: "_id",
+            as: "menuItems",
+          },
         },
         {
-          $unwind: '$menuItems'
+          $unwind: "$menuItems",
         },
         {
           $group: {
-            _id: '$menuItems.category',
-            quantity:{ $sum: 1 },
-            revenue: { $sum: '$menuItems.price'} 
-          }
+            _id: "$menuItems.category",
+            quantity: { $sum: 1 },
+            revenue: { $sum: "$menuItems.price" },
+          },
         },
         {
           $project: {
             _id: 0,
-            category: '$_id',
-            quantity: '$quantity',
-            revenue: '$revenue'
-          }
-        }
+            category: "$_id",
+            quantity: "$quantity",
+            revenue: "$revenue",
+          },
+        },
       ]).toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     // user all data related api
-    app.get('/user-stats', verifyToken, async(req,res)=>{
-      const menu = await CollectionFMenu.estimatedDocumentCount()
-      const contact = await CollectionFContact.estimatedDocumentCount()
-      const review = await CollectionFReview.estimatedDocumentCount()
-      const result = [menu,contact,review]
-      res.send(result)
-
-    })
+    app.get("/user-stats", verifyToken, async (req, res) => {
+      const menu = await CollectionFMenu.estimatedDocumentCount();
+      const contact = await CollectionFContact.estimatedDocumentCount();
+      const review = await CollectionFReview.estimatedDocumentCount();
+      const result = [menu, contact, review];
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
